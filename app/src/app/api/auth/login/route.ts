@@ -1,8 +1,9 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
-import { AUTH_COOKIE_NAME, createToken, shouldUseSecureCookie } from "@/lib/auth";
+import { ACCESS_COOKIE_NAME, REFRESH_COOKIE_NAME, shouldUseSecureCookie } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createSessionForUser } from "@/lib/session";
 
 export async function POST(request: Request) {
   try {
@@ -24,21 +25,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "邮箱或密码错误" }, { status: 401 });
     }
 
-    const token = await createToken({
-      sub: String(user.id),
-      email: user.email,
-      name: user.name,
-    });
+    const { accessToken, refreshToken } = await createSessionForUser(
+      { id: user.id, email: user.email, name: user.name },
+      request
+    );
     const response = NextResponse.json(
       { message: "登录成功", user: { id: user.id, email: user.email, name: user.name } },
       { status: 200 }
     );
-    response.cookies.set(AUTH_COOKIE_NAME, token, {
+    response.cookies.set(ACCESS_COOKIE_NAME, accessToken, {
       httpOnly: true,
       secure: shouldUseSecureCookie(),
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 15,
+    });
+    response.cookies.set(REFRESH_COOKIE_NAME, refreshToken, {
+      httpOnly: true,
+      secure: shouldUseSecureCookie(),
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
     });
     return response;
   } catch {

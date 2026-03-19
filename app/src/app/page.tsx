@@ -19,6 +19,17 @@ export default function Home() {
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
 
   useEffect(() => {
+    async function checkLoggedIn() {
+      const res = await fetch("/api/auth/me");
+      const data = (await res.json()) as { user: { id: string } | null };
+      if (data.user) {
+        router.replace("/dashboard");
+      }
+    }
+    void checkLoggedIn();
+  }, [router]);
+
+  useEffect(() => {
     if (mode !== "register") {
       setEmailHint(null);
       return;

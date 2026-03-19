@@ -9,23 +9,65 @@ type User = {
   name: string | null;
 };
 
+type SessionItem = {
+  id: string;
+  userAgent: string | null;
+  ip: string | null;
+  createdAt: string;
+  lastSeenAt: string;
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState("");
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
       const res = await fetch("/api/auth/me");
-      const data = (await res.json()) as { user: User | null };
+      const data = (await res.json()) as { user: User | null; sessionId?: string };
+      if (!data.user) {
+        router.replace("/");
+        return;
+      }
       setUser(data.user);
+      if (data.sessionId) setCurrentSessionId(data.sessionId);
+
+      const sessionRes = await fetch("/api/auth/sessions");
+      if (sessionRes.ok) {
+        const sessionData = (await sessionRes.json()) as {
+          currentSessionId: string;
+          sessions: SessionItem[];
+        };
+        setCurrentSessionId(sessionData.currentSessionId);
+        setSessions(sessionData.sessions);
+      }
     }
     void loadUser();
-  }, []);
+  }, [router]);
 
   async function logout() {
+    setBusy(true);
     await fetch("/api/auth/logout", { method: "POST" });
     router.replace("/");
     router.refresh();
+  }
+
+  async function revokeOtherDevices() {
+    setBusy(true);
+    await fetch("/api/auth/sessions/revoke-others", { method: "POST" });
+    const sessionRes = await fetch("/api/auth/sessions");
+    if (sessionRes.ok) {
+      const sessionData = (await sessionRes.json()) as {
+        currentSessionId: string;
+        sessions: SessionItem[];
+      };
+      setCurrentSessionId(sessionData.currentSessionId);
+      setSessions(sessionData.sessions);
+    }
+    setBusy(false);
   }
 
   return (
@@ -35,14 +77,38 @@ export default function DashboardPage() {
         <p className="mt-3 text-sm text-[#6e6e73]">
           当前登录用户：{user?.name || "未命名用户"}（{user?.email || "加载中..."}）
         </p>
-        <button
-          onClick={logout}
-          className="mt-6 rounded-xl bg-[#1d1d1f] px-4 py-2 text-sm font-medium text-white hover:bg-black"
-        >
-          退出登录
-        </button>
+        <div className="mt-6 space-y-2">
+          <button
+            onClick={logout}
+            disabled={busy}
+            className="w-full rounded-xl bg-[#1d1d1f] px-4 py-2 text-sm font-medium text-white hover:bg-black disabled:opacity-60"
+          >
+            退出当前设备
+          </button>
+          <button
+            onClick={revokeOtherDevices}
+            disabled={busy}
+            className="w-full rounded-xl border border-[#d2d2d7] bg-white px-4 py-2 text-sm font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] disabled:opacity-60"
+          >
+            踢下其他设备
+          </button>
+        </div>
+        <div className="mt-5 rounded-xl border border-[#e5e5ea] bg-[#fafafa] p-3">
+          <h2 className="text-sm font-semibold text-[#1d1d1f]">在线设备</h2>
+          <ul className="mt-2 space-y-2">
+            {sessions.map((s) => (
+              <li key={s.id} className="rounded-lg bg-white p-2 text-xs text-[#3a3a3c]">
+                <div className="font-medium">{s.userAgent || "未知设备"}</div>
+                <div className="text-[#6e6e73]">
+                  {s.id === currentSessionId ? "当前设备" : "其他设备"} · 最近活跃{" "}
+                  {new Date(s.lastSeenAt).toLocaleString()}
+                </div>
+              </li>
+            ))}
+            {sessions.length === 0 && <li className="text-xs text-[#6e6e73]">暂无会话数据</li>}
+          </ul>
+        </div>
       </section>
     </main>
   );
 }
-
