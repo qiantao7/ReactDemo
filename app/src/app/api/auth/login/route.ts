@@ -8,21 +8,31 @@ import { createSessionForUser } from "@/lib/session";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+    const accountRaw =
+      typeof body?.account === "string"
+        ? body.account
+        : typeof body?.email === "string"
+          ? body.email
+          : "";
+    const account = accountRaw.trim().toLowerCase();
     const password = typeof body?.password === "string" ? body.password : "";
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "邮箱和密码不能为空" }, { status: 400 });
+    if (!account || !password) {
+      return NextResponse.json({ error: "用户名/邮箱和密码不能为空" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: account }, { username: account }],
+      },
+    });
     if (!user) {
-      return NextResponse.json({ error: "邮箱或密码错误" }, { status: 401 });
+      return NextResponse.json({ error: "用户名/邮箱或密码错误" }, { status: 401 });
     }
 
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) {
-      return NextResponse.json({ error: "邮箱或密码错误" }, { status: 401 });
+      return NextResponse.json({ error: "用户名/邮箱或密码错误" }, { status: 401 });
     }
 
     const { accessToken, refreshToken } = await createSessionForUser(
@@ -30,7 +40,10 @@ export async function POST(request: Request) {
       request
     );
     const response = NextResponse.json(
-      { message: "登录成功", user: { id: user.id, email: user.email, name: user.name } },
+      {
+        message: "登录成功",
+        user: { id: user.id, email: user.email, username: user.username, name: user.name },
+      },
       { status: 200 }
     );
     response.cookies.set(ACCESS_COOKIE_NAME, accessToken, {

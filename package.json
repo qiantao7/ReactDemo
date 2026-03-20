@@ -1,0 +1,12 @@
+{
+  "name": "reactdemo",
+  "private": true,
+  "scripts": {
+    "dev:docker": "docker compose -f docker-compose.dev.yml up -d --force-recreate --remove-orphans",
+    "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
+    "dev:docker:logs": "docker compose -f docker-compose.dev.yml logs -f web-dev",
+    "prod:docker": "docker compose up -d --build",
+    "prod:docker:down": "docker compose down",
+    "prod:docker:logs": "docker compose logs -f web"
+  }
+}

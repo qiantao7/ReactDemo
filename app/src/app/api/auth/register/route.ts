@@ -9,22 +9,27 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+    const username = typeof body?.username === "string" ? body.username.trim().toLowerCase() : "";
     const password = typeof body?.password === "string" ? body.password : "";
     const name = typeof body?.name === "string" ? body.name.trim() : undefined;
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "邮箱和密码不能为空" }, { status: 400 });
+    if (!email || !username || !password) {
+      return NextResponse.json({ error: "用户名、邮箱和密码不能为空" }, { status: 400 });
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { username }],
+      },
+    });
     if (existing) {
-      return NextResponse.json({ error: "该邮箱已注册" }, { status: 409 });
+      return NextResponse.json({ error: "该用户名或邮箱已注册" }, { status: 409 });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { email, passwordHash, name },
-      select: { id: true, email: true, name: true },
+      data: { email, username, passwordHash, name },
+      select: { id: true, email: true, username: true, name: true },
     });
 
     const { accessToken, refreshToken } = await createSessionForUser(

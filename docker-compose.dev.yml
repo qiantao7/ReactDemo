@@ -1,0 +1,39 @@
+services:
+  db-dev:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app_password
+      POSTGRES_DB: app_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web-dev:
+    image: node:22-alpine
+    working_dir: /app
+    environment:
+      DATABASE_URL: postgresql://app:app_password@db-dev:5432/app_db?schema=public
+      NODE_ENV: development
+      JWT_SECRET: super_secret_change_me
+      AUTH_COOKIE_SECURE: "false"
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    command: sh -c "npm install && npx prisma db push --accept-data-loss && npx next dev --webpack -H 0.0.0.0 -p 3000"
+    ports:
+      - "3001:3000"
+    depends_on:
+      db-dev:
+        condition: service_healthy
+
+volumes:
+  pg_data_dev:

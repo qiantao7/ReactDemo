@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { apiFetch } from "@/lib/http";
+
 type User = {
   id: string;
   email: string;
@@ -26,8 +28,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function loadUser() {
-      const res = await fetch("/api/auth/me");
-      const data = (await res.json()) as { user: User | null; sessionId?: string };
+      const data = await apiFetch<{ user: User | null; sessionId?: string }>("/api/auth/me");
       if (!data.user) {
         router.replace("/");
         return;
@@ -35,38 +36,32 @@ export default function DashboardPage() {
       setUser(data.user);
       if (data.sessionId) setCurrentSessionId(data.sessionId);
 
-      const sessionRes = await fetch("/api/auth/sessions");
-      if (sessionRes.ok) {
-        const sessionData = (await sessionRes.json()) as {
-          currentSessionId: string;
-          sessions: SessionItem[];
-        };
-        setCurrentSessionId(sessionData.currentSessionId);
-        setSessions(sessionData.sessions);
-      }
+      const sessionData = await apiFetch<{
+        currentSessionId: string;
+        sessions: SessionItem[];
+      }>("/api/auth/sessions");
+      setCurrentSessionId(sessionData.currentSessionId);
+      setSessions(sessionData.sessions);
     }
     void loadUser();
   }, [router]);
 
   async function logout() {
     setBusy(true);
-    await fetch("/api/auth/logout", { method: "POST" });
+    await apiFetch<{ message: string }>("/api/auth/logout", { method: "POST" });
     router.replace("/");
     router.refresh();
   }
 
   async function revokeOtherDevices() {
     setBusy(true);
-    await fetch("/api/auth/sessions/revoke-others", { method: "POST" });
-    const sessionRes = await fetch("/api/auth/sessions");
-    if (sessionRes.ok) {
-      const sessionData = (await sessionRes.json()) as {
-        currentSessionId: string;
-        sessions: SessionItem[];
-      };
-      setCurrentSessionId(sessionData.currentSessionId);
-      setSessions(sessionData.sessions);
-    }
+    await apiFetch<{ message: string }>("/api/auth/sessions/revoke-others", { method: "POST" });
+    const sessionData = await apiFetch<{
+      currentSessionId: string;
+      sessions: SessionItem[];
+    }>("/api/auth/sessions");
+    setCurrentSessionId(sessionData.currentSessionId);
+    setSessions(sessionData.sessions);
     setBusy(false);
   }
 
