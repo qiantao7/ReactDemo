@@ -1,6 +1,6 @@
 services:
   db-dev:
-    image: postgres:15
+    image: public.ecr.aws/docker/library/postgres:15
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app_password
@@ -16,7 +16,7 @@ services:
       retries: 20
 
   web-dev:
-    image: node:22-alpine
+    image: public.ecr.aws/docker/library/node:22-alpine
     working_dir: /app
     environment:
       DATABASE_URL: postgresql://app:app_password@db-dev:5432/app_db?schema=public
