@@ -17,8 +17,11 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
         "& h2": { mt: 1.1, mb: 0.7, fontSize: "1.45rem", fontWeight: 700 },
         "& h3": { mt: 1, mb: 0.6, fontSize: "1.25rem", fontWeight: 700 },
         "& p": { my: 0.8, lineHeight: 1.8 },
-        "& ul, & ol": { my: 0.8, pl: 3.4 },
+        "& ul": { my: 0.8, pl: 3.4, listStyleType: "disc", listStylePosition: "outside" },
+        "& ol": { my: 0.8, pl: 3.4, listStyleType: "decimal", listStylePosition: "outside" },
+        "& blockquote ul, & blockquote ol": { my: 0.6, pl: 3 },
         "& li": { my: 0.35 },
+        "& li::marker": { color: "text.secondary" },
         "& blockquote": {
           my: 1.1,
           pl: 1.5,
