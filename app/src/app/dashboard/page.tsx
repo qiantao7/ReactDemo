@@ -81,9 +81,35 @@ type PostItem = {
 };
 
 function normalizeMediaUrl(url: string) {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  return url.startsWith("/") ? url : `/${url}`;
+  const raw = url.trim();
+  if (!raw) return "";
+
+  const encodePath = (pathname: string) =>
+    pathname
+      .split("/")
+      .map((segment, index) => {
+        if (index === 0) return segment;
+        if (!segment) return "";
+        try {
+          return encodeURIComponent(decodeURIComponent(segment));
+        } catch {
+          return encodeURIComponent(segment);
+        }
+      })
+      .join("/");
+
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const parsed = new URL(raw);
+      parsed.pathname = encodePath(parsed.pathname);
+      return parsed.toString();
+    } catch {
+      return raw;
+    }
+  }
+
+  const pathname = raw.startsWith("/") ? raw : `/${raw}`;
+  return encodePath(pathname);
 }
 
 export default function DashboardPage() {
@@ -396,6 +422,14 @@ export default function DashboardPage() {
                                   borderRadius: 1,
                                   objectFit: "contain",
                                   bgcolor: "action.hover",
+                                }}
+                                onError={(event) => {
+                                  const element = event.currentTarget as HTMLImageElement;
+                                  if (element.dataset.retried === "1") return;
+                                  element.dataset.retried = "1";
+                                  const retryUrl = normalizeMediaUrl(file.url);
+                                  const separator = retryUrl.includes("?") ? "&" : "?";
+                                  element.src = `${retryUrl}${separator}t=${Date.now()}`;
                                 }}
                               />
                             ) : file.kind === "video" ? (
