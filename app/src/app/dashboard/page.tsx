@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Alert,
@@ -31,9 +31,9 @@ import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import ThumbUpRoundedIcon from "@mui/icons-material/ThumbUpRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 
+import { MarkdownContent } from "@/components/markdown-content";
 import { useThemeSettings } from "@/components/app-theme-provider";
 import { apiFetch } from "@/lib/http";
-import { renderMarkdown } from "@/lib/markdown";
 
 type User = {
   id: string;
@@ -100,8 +100,6 @@ export default function DashboardPage() {
   const [publishing, setPublishing] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [preview, setPreview] = useState(true);
-
-  const renderedPreview = useMemo(() => renderMarkdown(content), [content]);
 
   async function loadPosts() {
     const data = await apiFetch<{ posts: PostItem[] }>("/api/posts");
@@ -357,10 +355,7 @@ export default function DashboardPage() {
                   Markdown 预览
                 </Typography>
                 <Paper variant="outlined" sx={{ p: 2, bgcolor: alpha(theme.palette.background.default, 0.45) }}>
-                  <div
-                    className="markdown-body"
-                    dangerouslySetInnerHTML={{ __html: preview ? renderedPreview : "<p>预览已关闭</p>" }}
-                  />
+                  {preview ? <MarkdownContent content={content} /> : <Typography color="text.secondary">预览已关闭</Typography>}
                 </Paper>
               </CardContent>
             </Card>
@@ -383,7 +378,7 @@ export default function DashboardPage() {
                       </Box>
                     </Stack>
 
-                    <div className="markdown-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }} />
+                    <MarkdownContent content={post.content} />
 
                     {post.attachments.length > 0 && (
                       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flexWrap="wrap">
