@@ -82,8 +82,8 @@ type PostItem = {
 
 function normalizeMediaUrl(url: string) {
   if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return encodeURI(url);
-  return encodeURI(url.startsWith("/") ? url : `/${url}`);
+  if (/^https?:\/\//i.test(url)) return url;
+  return url.startsWith("/") ? url : `/${url}`;
 }
 
 export default function DashboardPage() {
@@ -389,9 +389,13 @@ export default function DashboardPage() {
                                 component="img"
                                 src={normalizeMediaUrl(file.url)}
                                 alt={file.fileName}
-                                sx={{ height: 176, width: "100%", borderRadius: 1, objectFit: "cover" }}
-                                onError={(event) => {
-                                  event.currentTarget.style.display = "none";
+                                sx={{
+                                  width: "100%",
+                                  height: "auto",
+                                  maxHeight: 360,
+                                  borderRadius: 1,
+                                  objectFit: "contain",
+                                  bgcolor: "action.hover",
                                 }}
                               />
                             ) : file.kind === "video" ? (
