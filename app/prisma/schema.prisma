@@ -21,6 +21,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   sessions     Session[]
+  posts        Post[]
+  comments     Comment[]
+  likes        PostLike[]
+  favorites    PostFavorite[]
 }
 
 model Session {
@@ -38,4 +42,70 @@ model Session {
 
   @@index([userId])
   @@index([revokedAt])
+}
+
+model Post {
+  id         Int            @id @default(autoincrement())
+  authorId   Int
+  author     User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title      String
+  content    String
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  comments   Comment[]
+  likes      PostLike[]
+  favorites  PostFavorite[]
+  attachments Attachment[]
+
+  @@index([authorId, createdAt])
+  @@index([createdAt])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([postId, createdAt])
+  @@index([authorId])
+}
+
+model PostLike {
+  postId    Int
+  userId    Int
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([postId, userId])
+  @@index([userId])
+}
+
+model PostFavorite {
+  postId    Int
+  userId    Int
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([postId, userId])
+  @@index([userId])
+}
+
+model Attachment {
+  id        String   @id
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  url       String
+  fileName  String
+  mimeType  String
+  size      Int
+  kind      String
+  createdAt DateTime @default(now())
+
+  @@index([postId, createdAt])
 }

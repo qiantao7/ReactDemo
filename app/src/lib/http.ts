@@ -13,8 +13,9 @@ type JsonValue = Record<string, unknown> | unknown[] | string | number | boolean
 export async function apiFetch<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   const hasBody = init?.body !== undefined && init?.body !== null;
+  const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
 
-  if (hasBody && !headers.has("Content-Type")) {
+  if (hasBody && !isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -46,4 +47,3 @@ export async function apiFetch<T>(input: RequestInfo | URL, init?: RequestInit):
 
   return data as T;
 }
-
