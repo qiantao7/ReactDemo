@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Alert,
@@ -80,6 +79,12 @@ type PostItem = {
   comments: PostComment[];
   attachments: Attachment[];
 };
+
+function normalizeMediaUrl(url: string) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return encodeURI(url);
+  return encodeURI(url.startsWith("/") ? url : `/${url}`);
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -385,18 +390,29 @@ export default function DashboardPage() {
                         {post.attachments.map((file) => (
                           <Paper key={file.url} variant="outlined" sx={{ p: 1.2, width: { xs: "100%", sm: 300 } }}>
                             {file.kind === "image" ? (
-                              <Image
-                                src={file.url}
+                              <Box
+                                component="img"
+                                src={normalizeMediaUrl(file.url)}
                                 alt={file.fileName}
-                                width={800}
-                                height={500}
-                                unoptimized
-                                className="h-44 w-full rounded object-cover"
+                                sx={{ height: 176, width: "100%", borderRadius: 1, objectFit: "cover" }}
+                                onError={(event) => {
+                                  event.currentTarget.style.display = "none";
+                                }}
                               />
                             ) : file.kind === "video" ? (
-                              <video src={file.url} controls className="h-44 w-full rounded object-cover" />
+                              <video
+                                src={normalizeMediaUrl(file.url)}
+                                controls
+                                className="h-44 w-full rounded object-cover"
+                              />
                             ) : (
-                              <Button href={file.url} target="_blank" rel="noreferrer" fullWidth variant="outlined">
+                              <Button
+                                href={normalizeMediaUrl(file.url)}
+                                target="_blank"
+                                rel="noreferrer"
+                                fullWidth
+                                variant="outlined"
+                              >
                                 下载附件：{file.fileName}
                               </Button>
                             )}
@@ -453,7 +469,12 @@ export default function DashboardPage() {
                         size="small"
                         fullWidth
                       />
-                      <Button variant="contained" onClick={() => void submitComment(post.id)} startIcon={<SendRoundedIcon />}>
+                      <Button
+                        variant="contained"
+                        onClick={() => void submitComment(post.id)}
+                        startIcon={<SendRoundedIcon />}
+                        sx={{ whiteSpace: "nowrap", minWidth: 96, flexShrink: 0 }}
+                      >
                         发送
                       </Button>
                     </Stack>
