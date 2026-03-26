@@ -3,7 +3,36 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import {
+  Alert,
+  AppBar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  Divider,
+  FormControlLabel,
+  IconButton,
+  Paper,
+  Stack,
+  Switch,
+  TextField,
+  Toolbar,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
+import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import PublishRoundedIcon from "@mui/icons-material/PublishRounded";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import ThumbUpRoundedIcon from "@mui/icons-material/ThumbUpRounded";
+import SendRoundedIcon from "@mui/icons-material/SendRounded";
 
+import { useThemeSettings } from "@/components/app-theme-provider";
 import { apiFetch } from "@/lib/http";
 import { renderMarkdown } from "@/lib/markdown";
 
@@ -54,6 +83,8 @@ type PostItem = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const theme = useTheme();
+  const { mode, toggleMode, primaryColor, setPrimaryColor } = useThemeSettings();
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [title, setTitle] = useState("");
@@ -188,255 +219,262 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_20%_10%,#1d4ed8_0%,#0f172a_35%,#020617_75%)] px-4 py-8 text-white">
-      <section className="mx-auto w-full max-w-6xl">
-        <header className="mb-6 rounded-3xl border border-white/20 bg-white/10 p-5 backdrop-blur-xl">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-semibold">Ctrl+S 社</h1>
-              <p className="mt-1 text-sm text-slate-200">
-                {loading
-                  ? "正在加载..."
-                  : `欢迎 ${user?.name || user?.username || user?.email || "开发者"}，写下你的灵感`}
-              </p>
-            </div>
-            <button
-              onClick={logout}
-              disabled={loading}
-              className="rounded-xl border border-white/40 bg-black/40 px-4 py-2 text-sm hover:bg-black/60 disabled:opacity-60"
-            >
-              退出登录
-            </button>
-          </div>
-        </header>
-
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_1.4fr]">
-          <form
-            onSubmit={publishPost}
-            className="rounded-3xl border border-white/20 bg-white/10 p-5 backdrop-blur-xl"
+    <Box
+      sx={{
+        minHeight: "100vh",
+        pb: 8,
+        background: `radial-gradient(1200px 760px at 100% -20%, ${alpha(theme.palette.primary.main, 0.16)} 0%, ${theme.palette.background.default} 58%, ${theme.palette.background.default} 100%)`,
+      }}
+    >
+      <AppBar position="sticky" color="transparent" elevation={0} sx={{ backdropFilter: "blur(14px)" }}>
+        <Toolbar sx={{ gap: 2 }}>
+          <Typography variant="h6" fontWeight={700} sx={{ flexGrow: 1 }}>
+            Ctrl+S 社
+          </Typography>
+          <Tooltip title="刷新文章">
+            <IconButton onClick={() => void loadPosts()} color="primary">
+              <RefreshRoundedIcon />
+            </IconButton>
+          </Tooltip>
+          <Button
+            startIcon={<LogoutRoundedIcon />}
+            onClick={logout}
+            disabled={loading}
+            variant="outlined"
+            color="inherit"
           >
-            <h2 className="text-lg font-semibold">发布新文章</h2>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="标题：比如《从 0 到 1 的 Next.js 全栈实践》"
-              className="mt-4 w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm outline-none focus:border-cyan-300"
-            />
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="支持 Markdown：# 标题、**加粗**、*斜体*、`代码`、[链接](https://...)"
-              className="mt-3 h-56 w-full resize-none rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm outline-none focus:border-cyan-300"
-            />
-            <div className="mt-3 flex items-center justify-between">
-              <label className="cursor-pointer rounded-lg border border-white/25 bg-white/10 px-3 py-2 text-xs hover:bg-white/15">
-                上传附件（图/视频/文件）
-                <input
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => {
-                    void uploadFiles(e.target.files);
-                    e.currentTarget.value = "";
-                  }}
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => setPreview((prev) => !prev)}
-                className="rounded-lg border border-white/25 bg-white/10 px-3 py-2 text-xs hover:bg-white/15"
-              >
-                {preview ? "隐藏预览" : "显示预览"}
-              </button>
-            </div>
+            退出登录
+          </Button>
+        </Toolbar>
+      </AppBar>
 
-            {attachments.length > 0 && (
-              <ul className="mt-3 space-y-2 rounded-xl border border-white/15 bg-black/20 p-3 text-xs text-slate-200">
-                {attachments.map((item, index) => (
-                  <li key={`${item.url}-${index}`} className="flex items-center justify-between gap-2">
-                    <span className="truncate">{item.fileName}</span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setAttachments((prev) => prev.filter((target) => target.url !== item.url))
-                      }
-                      className="rounded bg-rose-500/30 px-2 py-1 text-[11px] hover:bg-rose-500/50"
-                    >
-                      移除
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+      <Container maxWidth="xl" sx={{ mt: 3 }}>
+        <Stack spacing={3}>
+          <Card>
+            <CardContent>
+              <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" gap={2}>
+                <Box>
+                  <Typography variant="h5" fontWeight={700}>
+                    欢迎 {user?.name || user?.username || user?.email || "开发者"}
+                  </Typography>
+                  <Typography color="text.secondary" mt={0.5}>
+                    轻量、清爽、可定制主题色的创作社区
+                  </Typography>
+                </Box>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                  <TextField
+                    label="主题色"
+                    type="color"
+                    size="small"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    sx={{ minWidth: 120 }}
+                  />
+                  <FormControlLabel
+                    control={<Switch checked={mode === "dark"} onChange={toggleMode} />}
+                    label={mode === "dark" ? "深色" : "浅色"}
+                  />
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
 
-            {message && (
-              <div
-                className={`mt-3 rounded-xl border px-3 py-2 text-sm ${
-                  message.type === "success"
-                    ? "border-emerald-300/40 bg-emerald-400/15 text-emerald-100"
-                    : "border-rose-300/40 bg-rose-400/15 text-rose-100"
-                }`}
-              >
-                {message.text}
-              </div>
-            )}
+          <Stack direction={{ xs: "column", lg: "row" }} spacing={3} alignItems="stretch">
+            <Card sx={{ flex: 1 }}>
+              <CardContent component="form" onSubmit={publishPost}>
+                <Stack spacing={2}>
+                  <Typography variant="h6" fontWeight={700}>
+                    发布新文章
+                  </Typography>
+                  <TextField
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    label="文章标题"
+                    fullWidth
+                  />
+                  <TextField
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    label="Markdown 内容"
+                    multiline
+                    minRows={10}
+                    fullWidth
+                  />
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ sm: "center" }}>
+                    <Button component="label" variant="outlined">
+                      上传附件（图片/视频/文件）
+                      <input
+                        hidden
+                        type="file"
+                        multiple
+                        onChange={(e) => {
+                          void uploadFiles(e.target.files);
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                    </Button>
+                    <Button variant="text" onClick={() => setPreview((prev) => !prev)}>
+                      {preview ? "隐藏预览" : "显示预览"}
+                    </Button>
+                  </Stack>
 
-            <button
-              type="submit"
-              disabled={publishing}
-              className="mt-4 w-full rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:opacity-60"
-            >
-              {publishing ? "发布中..." : "立即发布"}
-            </button>
-          </form>
-
-          <div className="rounded-3xl border border-white/20 bg-white/10 p-5 backdrop-blur-xl">
-            <h2 className="text-lg font-semibold">Markdown 预览</h2>
-            <div
-              className="prose prose-invert mt-4 max-w-none rounded-2xl border border-white/15 bg-black/20 p-4 text-sm"
-              dangerouslySetInnerHTML={{ __html: preview ? renderedPreview : "<p>预览已关闭</p>" }}
-            />
-          </div>
-        </div>
-
-        <section className="mt-6 space-y-4">
-          {posts.map((post) => (
-            <article
-              key={post.id}
-              className="rounded-3xl border border-white/20 bg-gradient-to-br from-black/40 to-slate-900/40 p-5 backdrop-blur-xl"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-xl font-semibold">{post.title}</h3>
-                <span className="text-xs text-slate-300">{new Date(post.createdAt).toLocaleString()}</span>
-              </div>
-              <p className="mt-1 text-xs text-slate-300">
-                作者：{post.author.name || post.author.username || `用户${post.author.id}`}
-              </p>
-
-              <div
-                className="prose prose-invert mt-4 max-w-none text-sm"
-                dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
-              />
-
-              {post.attachments.length > 0 && (
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {post.attachments.map((file) => (
-                    <div key={file.url} className="overflow-hidden rounded-xl border border-white/15 bg-black/30 p-2">
-                      {file.kind === "image" ? (
-                        <Image
-                          src={file.url}
-                          alt={file.fileName}
-                          width={800}
-                          height={500}
-                          className="h-44 w-full rounded object-cover"
+                  {attachments.length > 0 && (
+                    <Stack direction="row" gap={1} flexWrap="wrap">
+                      {attachments.map((item, index) => (
+                        <Chip
+                          key={`${item.url}-${index}`}
+                          label={item.fileName}
+                          onDelete={() =>
+                            setAttachments((prev) => prev.filter((target) => target.url !== item.url))
+                          }
                         />
-                      ) : file.kind === "video" ? (
-                        <video src={file.url} controls className="h-44 w-full rounded object-cover" />
-                      ) : (
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block rounded bg-white/10 px-3 py-2 text-xs hover:bg-white/20"
-                        >
-                          下载附件：{file.fileName}
-                        </a>
+                      ))}
+                    </Stack>
+                  )}
+
+                  {message && <Alert severity={message.type === "error" ? "error" : "success"}>{message.text}</Alert>}
+
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    startIcon={publishing ? <CircularProgress color="inherit" size={16} /> : <PublishRoundedIcon />}
+                    disabled={publishing}
+                  >
+                    {publishing ? "发布中..." : "立即发布"}
+                  </Button>
+                </Stack>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ flex: 1 }}>
+              <CardContent>
+                <Typography variant="h6" fontWeight={700} mb={2}>
+                  Markdown 预览
+                </Typography>
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: alpha(theme.palette.background.default, 0.45) }}>
+                  <div
+                    className="markdown-body"
+                    dangerouslySetInnerHTML={{ __html: preview ? renderedPreview : "<p>预览已关闭</p>" }}
+                  />
+                </Paper>
+              </CardContent>
+            </Card>
+          </Stack>
+
+          <Stack spacing={2}>
+            {posts.map((post) => (
+              <Card key={post.id}>
+                <CardContent>
+                  <Stack spacing={2}>
+                    <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" gap={1}>
+                      <Box>
+                        <Typography variant="h6" fontWeight={700}>
+                          {post.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          作者：{post.author.name || post.author.username || `用户${post.author.id}`} ·{" "}
+                          {new Date(post.createdAt).toLocaleString()}
+                        </Typography>
+                      </Box>
+                    </Stack>
+
+                    <div className="markdown-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }} />
+
+                    {post.attachments.length > 0 && (
+                      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flexWrap="wrap">
+                        {post.attachments.map((file) => (
+                          <Paper key={file.url} variant="outlined" sx={{ p: 1.2, width: { xs: "100%", sm: 300 } }}>
+                            {file.kind === "image" ? (
+                              <Image
+                                src={file.url}
+                                alt={file.fileName}
+                                width={800}
+                                height={500}
+                                unoptimized
+                                className="h-44 w-full rounded object-cover"
+                              />
+                            ) : file.kind === "video" ? (
+                              <video src={file.url} controls className="h-44 w-full rounded object-cover" />
+                            ) : (
+                              <Button href={file.url} target="_blank" rel="noreferrer" fullWidth variant="outlined">
+                                下载附件：{file.fileName}
+                              </Button>
+                            )}
+                          </Paper>
+                        ))}
+                      </Stack>
+                    )}
+
+                    <Stack direction="row" spacing={1.2} flexWrap="wrap">
+                      <Button
+                        variant={post.liked ? "contained" : "outlined"}
+                        startIcon={<ThumbUpRoundedIcon />}
+                        onClick={() => void toggleLike(post.id)}
+                      >
+                        点赞 {post.likeCount}
+                      </Button>
+                      <Button
+                        variant={post.favorited ? "contained" : "outlined"}
+                        color={post.favorited ? "secondary" : "primary"}
+                        startIcon={<FavoriteRoundedIcon />}
+                        onClick={() => void toggleFavorite(post.id)}
+                      >
+                        收藏 {post.favoriteCount}
+                      </Button>
+                      <Chip label={`评论 ${post.commentCount}`} />
+                    </Stack>
+
+                    <Divider />
+
+                    <Stack spacing={1.2}>
+                      {post.comments.map((comment) => (
+                        <Paper key={comment.id} variant="outlined" sx={{ p: 1.5 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {comment.author.name || comment.author.username || `用户${comment.author.id}`} ·{" "}
+                            {new Date(comment.createdAt).toLocaleString()}
+                          </Typography>
+                          <Typography variant="body2" mt={0.5}>
+                            {comment.content}
+                          </Typography>
+                        </Paper>
+                      ))}
+                      {post.comments.length === 0 && (
+                        <Typography variant="body2" color="text.secondary">
+                          暂无评论，来抢沙发
+                        </Typography>
                       )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                    </Stack>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  onClick={() => {
-                    void toggleLike(post.id);
-                  }}
-                  className={`rounded-lg border px-3 py-2 text-xs ${
-                    post.liked
-                      ? "border-cyan-300 bg-cyan-300/20 text-cyan-100"
-                      : "border-white/25 bg-white/10 hover:bg-white/20"
-                  }`}
-                >
-                  👍 点赞 {post.likeCount}
-                </button>
-                <button
-                  onClick={() => {
-                    void toggleFavorite(post.id);
-                  }}
-                  className={`rounded-lg border px-3 py-2 text-xs ${
-                    post.favorited
-                      ? "border-fuchsia-300 bg-fuchsia-300/20 text-fuchsia-100"
-                      : "border-white/25 bg-white/10 hover:bg-white/20"
-                  }`}
-                >
-                  ⭐ 收藏 {post.favoriteCount}
-                </button>
-                <span className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-xs">
-                  💬 评论 {post.commentCount}
-                </span>
-              </div>
+                    <Stack direction="row" spacing={1}>
+                      <TextField
+                        value={commentMap[post.id] || ""}
+                        onChange={(e) => setCommentMap((prev) => ({ ...prev, [post.id]: e.target.value }))}
+                        label="写下你的评论"
+                        size="small"
+                        fullWidth
+                      />
+                      <Button variant="contained" onClick={() => void submitComment(post.id)} startIcon={<SendRoundedIcon />}>
+                        发送
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
 
-              <div className="mt-4 space-y-2">
-                {post.comments.map((comment) => (
-                  <div key={comment.id} className="rounded-xl border border-white/15 bg-black/25 px-3 py-2">
-                    <div className="text-xs text-slate-300">
-                      {comment.author.name || comment.author.username || `用户${comment.author.id}`} ·{" "}
-                      {new Date(comment.createdAt).toLocaleString()}
-                    </div>
-                    <p className="mt-1 text-sm">{comment.content}</p>
-                  </div>
-                ))}
-                {post.comments.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-white/20 px-3 py-2 text-xs text-slate-300">
-                    暂无评论，来抢沙发
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-3 flex gap-2">
-                <input
-                  value={commentMap[post.id] || ""}
-                  onChange={(e) => setCommentMap((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                  placeholder="写下你的评论..."
-                  className="w-full rounded-xl border border-white/20 bg-black/30 px-3 py-2 text-sm outline-none focus:border-cyan-300"
-                />
-                <button
-                  onClick={() => {
-                    void submitComment(post.id);
-                  }}
-                  className="rounded-xl bg-white/20 px-4 py-2 text-sm hover:bg-white/30"
-                >
-                  发送
-                </button>
-              </div>
-            </article>
-          ))}
-          {posts.length === 0 && !loading && (
-            <div className="rounded-3xl border border-dashed border-white/30 bg-white/5 px-4 py-10 text-center text-slate-200">
-              还没有文章，发布第一篇吧
-            </div>
-          )}
-          {loading && (
-            <div className="rounded-3xl border border-white/20 bg-white/10 px-4 py-10 text-center text-slate-200">
-              正在加载文章流...
-            </div>
-          )}
-        </section>
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => {
-              void loadPosts();
-            }}
-            className="rounded-xl border border-white/30 bg-white/10 px-5 py-2 text-sm hover:bg-white/20"
-          >
-            刷新文章列表
-          </button>
-        </div>
-        <div className="mt-4 text-center text-xs text-slate-300">
-          你已进入登录后的首页流：发文、评论、点赞、收藏、附件上传都可用
-        </div>
-      </section>
-    </main>
+            {posts.length === 0 && !loading && (
+              <Paper variant="outlined" sx={{ py: 6, textAlign: "center" }}>
+                <Typography color="text.secondary">还没有文章，发布第一篇吧</Typography>
+              </Paper>
+            )}
+            {loading && (
+              <Paper variant="outlined" sx={{ py: 6, textAlign: "center" }}>
+                <CircularProgress size={28} />
+              </Paper>
+            )}
+          </Stack>
+        </Stack>
+      </Container>
+    </Box>
   );
 }

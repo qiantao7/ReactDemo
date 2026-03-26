@@ -28,9 +28,12 @@ services:
       AUTH_COOKIE_SECURE: "false"
     ports:
       - "3000:3000"
+    volumes:
+      - uploads_data:/app/public/uploads
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   pg_data:
+  uploads_data:

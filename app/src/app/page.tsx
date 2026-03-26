@@ -2,6 +2,22 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 
 import { apiFetch } from "@/lib/http";
 
@@ -9,6 +25,7 @@ type Mode = "login" | "register";
 
 export default function Home() {
   const router = useRouter();
+  const theme = useTheme();
   const [mode, setMode] = useState<Mode>("login");
   const [account, setAccount] = useState("");
   const [email, setEmail] = useState("");
@@ -93,206 +110,118 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(1200px_600px_at_50%_0%,#fff_0%,#f5f5f7_55%,#f5f5f7_100%)] flex items-center justify-center px-4">
-      <section className="w-full max-w-md rounded-3xl border border-[#d2d2d7] bg-white/90 backdrop-blur-sm p-8 shadow-[0_10px_40px_rgba(0,0,0,0.08)] transition-all duration-300 hover:shadow-[0_18px_56px_rgba(0,0,0,0.12)]">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 h-10 w-10 text-[#1d1d1f]">
-            <svg
-              viewBox="0 0 1024 1024"
-              xmlns="http://www.w3.org/2000/svg"
-              width={40}
-              height={40}
-              aria-hidden="true"
-            >
-              <path
-                d="M747.1 367.4s90.8 41 119.7 33c28.9-8-28.4 82.6-73.5 47.3"
-                fill="#4C4C4C"
-              />
-              <path
-                d="M816.1 460.8c-9.2 0-18-3.1-25.9-9.3l6.2-7.9c16.6 13 34.1 5.8 45.8-2.5 17.4-12.3 27.7-31 27.5-36.4-0.3 0-0.9 0.1-1.5 0.3-29.8 8.2-113.7-29-123.1-33.3l4.1-9.1c24.8 11.2 94.1 38.9 116.3 32.7 8.6-2.4 11.9 2.1 13 4.1 5.3 10.2-9 32.3-25.2 45.7-12.4 10.5-25.2 15.7-37.2 15.7z"
-                fill=""
-              />
-              <path
-                d="M276.9 373.1s-90.8 41-119.7 33 28.4 82.6 73.5 47.3"
-                fill="#4C4C4C"
-              />
-              <path
-                d="M207.9 466.6c-12 0-24.7-5.2-37.1-15.5-16.2-13.5-30.5-35.5-25.2-45.7 1.1-2 4.4-6.4 13-4.1 22.3 6.1 91.5-21.5 116.3-32.7l4.1 9.1c-9.5 4.3-93.3 41.5-123.1 33.3-0.7-0.2-1.2-0.3-1.5-0.3-0.3 5.3 10.1 24.1 27.5 36.4 11.7 8.3 29.2 15.5 45.8 2.5l6.2 7.9c-8 6-16.8 9.1-26 9.1z"
-                fill=""
-              />
-              <path
-                d="M670.5 299.6s71.8-33.7 33-100c-37.6-64.2-4.4-74.2 51.8-5.3 57.6 70.7-8.2 173-8.2 173"
-                fill="#B5B5AC"
-              />
-              <path
-                d="M751.3 370.1l-8.4-5.4c0.2-0.2 16.2-25.5 25.1-58.8 11.7-43.9 6.2-80.4-16.6-108.3-33.1-40.6-53.3-48-57.4-45.1-2.9 2-3.3 15.5 13.8 44.7 12 20.5 15.2 40.1 9.5 58.5-9.9 32-43.2 47.9-44.6 48.6l-4.2-9.1 2.1 4.5-2.1-4.5c0.3-0.1 30.8-14.8 39.4-42.6 4.8-15.5 1.9-32.5-8.6-50.4-17.6-30-21.5-50.6-10.9-57.9 12.8-8.9 40 9.1 70.8 47 24.6 30.2 31 70.8 18.5 117.5-9.5 34.6-25.8 60.2-26.4 61.3z"
-                fill=""
-              />
-              <path
-                d="M350.6 303.8s-71.8-33.7-33-100c37.6-64.2 4.4-74.2-51.8-5.3-57.6 70.7 9 174.6 9 174.6"
-                fill="#B5B5AC"
-              />
-              <path
-                d="M270.6 375.8c-0.7-1.1-17.2-27-26.7-62.2-12.8-47.2-6.5-88.1 18.1-118.3 30.9-37.9 58-55.9 70.8-47 10.6 7.3 6.7 27.9-10.9 57.9-10.5 17.9-13.4 34.9-8.6 50.5 8.6 27.8 39 42.4 39.3 42.5l-4.2 9.1c-1.4-0.7-34.7-16.6-44.6-48.6-5.7-18.3-2.5-38 9.5-58.5 17.1-29.1 16.7-42.7 13.8-44.7-4.1-2.9-24.3 4.5-57.4 45.1-22.8 27.9-28.2 64.6-16.2 109.1 9.1 33.7 25.4 59.4 25.5 59.6l-8.4 5.5z"
-                fill=""
-              />
-              <path
-                d="M513.2 555.3m-300 0a300 300 0 1 0 600 0 300 300 0 1 0-600 0Z"
-                fill="#FFFFFF"
-              />
-              <path
-                d="M513.2 860.3c-81.5 0-158.1-31.7-215.7-89.3-57.6-57.6-89.3-134.2-89.3-215.7s31.7-158.1 89.3-215.7c57.6-57.6 134.2-89.3 215.7-89.3s158.1 31.7 215.7 89.3c57.6 57.6 89.3 134.2 89.3 215.7S786.5 713.4 728.8 771c-57.6 57.6-134.2 89.3-215.6 89.3z m0-600c-162.7 0-295 132.3-295 295s132.3 295 295 295 295-132.3 295-295-132.4-295-295-295z"
-                fill=""
-              />
-              <path
-                d="M509.8 258.3c165.7 0 300 134.3 300 300 0 0 0.2 75.9-25.7 83-25.9 7-106.5-10.3-127.5-10.7-15.8-0.2-27-61.2-55.2-112.8-15.6-28.4-54-51.2-64.3-81.3-11.6-34-24.7-53.2-86.8-104.4-73.5-60.6 59.5-73.8 59.5-73.8z"
-                fill="#4C4C4C"
-              />
-              <path
-                d="M362.2 555.3m-55 0a55 55 0 1 0 110 0 55 55 0 1 0-110 0Z"
-                fill=""
-              />
-              <path
-                d="M362.2 611.8c-31.2 0-56.5-25.3-56.5-56.5s25.3-56.5 56.5-56.5 56.5 25.3 56.5 56.5-25.4 56.5-56.5 56.5z m0-110c-29.5 0-53.5 24-53.5 53.5s24 53.5 53.5 53.5 53.5-24 53.5-53.5-24-53.5-53.5-53.5z"
-                fill=""
-              />
-              <path
-                d="M338.4 540.1m-15.2 0a15.2 15.2 0 1 0 30.4 0 15.2 15.2 0 1 0-30.4 0Z"
-                fill="#FFFFFF"
-              />
-              <path
-                d="M401.3 572.9c2.4 4.2-1.2 14.8-13.9 22.3-12.7 7.5-26.4 6.4-28.9 2.3s9.7-1.6 22.5-9c12.8-7.6 17.9-19.8 20.3-15.6z"
-                fill="#565656"
-              />
-              <path
-                d="M663.9 555.3m-55 0a55 55 0 1 0 110 0 55 55 0 1 0-110 0Z"
-                fill=""
-              />
-              <path
-                d="M663.9 611.8c-31.2 0-56.5-25.3-56.5-56.5s25.3-56.5 56.5-56.5 56.5 25.3 56.5 56.5-25.3 56.5-56.5 56.5z m0-110c-29.5 0-53.5 24-53.5 53.5s24 53.5 53.5 53.5 53.5-24 53.5-53.5-24-53.5-53.5-53.5z"
-                fill=""
-              />
-              <path
-                d="M640.2 540.1m-15.2 0a15.2 15.2 0 1 0 30.4 0 15.2 15.2 0 1 0-30.4 0Z"
-                fill="#FFFFFF"
-              />
-              <path
-                d="M703.1 572.9c2.4 4.2-1.2 14.8-13.9 22.3s-26.4 6.4-28.9 2.3 9.7-1.6 22.5-9c12.8-7.6 17.9-19.8 20.3-15.6z"
-                fill="#565656"
-              />
-              <path
-                d="M823.4 634.6c4.9 10.6 7 22.3 6.6 34-6 180.5-145.4 186.7-316.5 186.7-170.4 0-316.6-8.1-317-184.5 0-14.1 3.7-28.1 11-40.1 41.3-67.6 147.5-0.5 306-0.5 161.2 0.1 276.3-68.5 309.9 4.4z"
-                fill="#FFD4DC"
-              />
-              <path
-                d="M513.4 860.3c-84.6 0-165.3-2-224.2-26.5-31.8-13.2-55.1-31.9-71.3-57.1-17.8-27.6-26.4-62.3-26.6-105.9 0-15.3 4-30.1 11.8-42.7 27.2-44.5 79.5-34.7 151.9-21.2 45.8 8.6 97.7 18.3 158.3 18.3 60.4 0 113.4-9.5 160.1-17.9 76.6-13.8 131.9-23.7 154.4 25.2 5 10.9 7.4 23.4 7 36.3-1.5 44.7-10.9 79.9-28.7 107.9-16.3 25.6-39.5 44.4-70.7 57.6-56.8 24.1-134.2 26-222 26zM270.2 605.5c-26.4 0-45.9 7-58.6 27.8-6.8 11.1-10.3 24-10.3 37.5 0.2 79 29.3 127.8 91.7 153.8 57.1 23.7 136.8 25.7 220.3 25.7 86.7 0 163-1.9 218.2-25.3 61-25.8 90.6-75.6 93.3-156.6 0.4-11.3-1.7-22.3-6.1-31.8-19.3-41.9-68.7-33-143.6-19.5-44.8 8.1-100.5 18.1-161.9 18.1-61.6 0-116.2-10.2-160.2-18.4-32.5-6.1-60.2-11.3-82.8-11.3z"
-                fill=""
-              />
-              <path
-                d="M268.5 674.4c-4.4-14.9-4-25.2 1.2-31.4 5.8-6.9 15.2-5.8 18.7-5.4 0.3 0 0.6 0.1 0.8 0.1-1.2-0.1-3.5 0.7-4.5 3.1-0.9 2.2 0 4.4 1.3 5.5l6.3-7.7c2.3 1.9 2.3 4.4 1.6 6.1-1.5 3.6-5.2 3.1-6.7 3-2.4-0.3-7.5-0.9-9.9 1.9-1.6 1.9-3.7 7.3 0.7 22.1l-9.5 2.7zM754.3 675.1l-9-4.4c10.5-21.8 7-26.2 6.6-26.7-2.2-2.1-10.6 0.1-15.7 2.7l-4.5-8.9c3.1-1.6 19-9 27.2-0.9 6.3 6.4 4.9 18.5-4.6 38.2z"
-                fill=""
-              />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#1d1d1f]">
-            {mode === "login" ? "输入账号信息继续" : "填写信息完成注册"}
-          </h1>
-        </div>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        py: 8,
+        background: `radial-gradient(1200px 700px at 50% 0%, ${alpha(theme.palette.primary.main, 0.18)} 0%, ${theme.palette.background.default} 58%, ${theme.palette.background.default} 100%)`,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Card>
+          <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+            <Stack spacing={3}>
+              <Box textAlign="center">
+                <Typography variant="h4" fontWeight={700}>
+                  Ctrl+S 社
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mt={1}>
+                  {mode === "login" ? "输入账号信息继续" : "创建账号并加入社区"}
+                </Typography>
+              </Box>
 
-        <form className="space-y-3" onSubmit={onSubmit}>
-          {mode === "register" && (
-            <>
-              <input
-                className="w-full rounded-xl border border-[#d2d2d7] px-4 py-3 text-sm text-[#1d1d1f] outline-none transition-all duration-200 focus:-translate-y-0.5 focus:border-[#0071e3] focus:ring-4 focus:ring-[#0071e3]/20"
-                placeholder="用户名"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-              <input
-                className="w-full rounded-xl border border-[#d2d2d7] px-4 py-3 text-sm text-[#1d1d1f] outline-none transition-all duration-200 focus:-translate-y-0.5 focus:border-[#0071e3] focus:ring-4 focus:ring-[#0071e3]/20"
-                placeholder="姓名"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </>
-          )}
+              <Tabs
+                value={mode}
+                onChange={(_, v: Mode) => {
+                  setMessage(null);
+                  setMode(v);
+                }}
+                centered
+              >
+                <Tab value="login" label="登录" />
+                <Tab value="register" label="注册" />
+              </Tabs>
 
-          {mode === "login" ? (
-            <input
-              className="w-full rounded-xl border border-[#d2d2d7] px-4 py-3 text-sm text-[#1d1d1f] outline-none transition-all duration-200 focus:-translate-y-0.5 focus:border-[#0071e3] focus:ring-4 focus:ring-[#0071e3]/20"
-              placeholder="用户名或邮箱"
-              value={account}
-              onChange={(e) => setAccount(e.target.value)}
-              required
-            />
-          ) : (
-            <input
-              className="w-full rounded-xl border border-[#d2d2d7] px-4 py-3 text-sm text-[#1d1d1f] outline-none transition-all duration-200 focus:-translate-y-0.5 focus:border-[#0071e3] focus:ring-4 focus:ring-[#0071e3]/20"
-              placeholder="Apple ID (邮箱)"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          )}
-          {mode === "register" && normalizedEmail && normalizedUsername && (
-            <div
-              className={`text-xs px-1 transition-opacity duration-200 ${
-                emailHint?.type === "error" ? "text-red-600" : "text-green-600"
-              }`}
-            >
-              {checkingEmail ? "正在校验邮箱..." : emailHint?.text}
-            </div>
-          )}
+              <Box component="form" onSubmit={onSubmit}>
+                <Stack spacing={2}>
+                  {mode === "register" && (
+                    <>
+                      <TextField
+                        label="用户名"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        fullWidth
+                      />
+                      <TextField
+                        label="昵称"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        fullWidth
+                      />
+                    </>
+                  )}
 
-          <input
-            className="w-full rounded-xl border border-[#d2d2d7] px-4 py-3 text-sm text-[#1d1d1f] outline-none transition-all duration-200 focus:-translate-y-0.5 focus:border-[#0071e3] focus:ring-4 focus:ring-[#0071e3]/20"
-            type="password"
-            placeholder="密码"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+                  {mode === "login" ? (
+                    <TextField
+                      label="用户名或邮箱"
+                      value={account}
+                      onChange={(e) => setAccount(e.target.value)}
+                      required
+                      fullWidth
+                    />
+                  ) : (
+                    <TextField
+                      label="邮箱"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      fullWidth
+                    />
+                  )}
 
-          {message && (
-            <div
-              className={`rounded-xl px-3 py-2 text-sm ${
-                message.type === "success"
-                  ? "bg-green-50 text-green-700 border border-green-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
+                  {mode === "register" && normalizedEmail && normalizedUsername && (
+                    <Chip
+                      size="small"
+                      color={emailHint?.type === "error" ? "error" : "success"}
+                      label={checkingEmail ? "正在校验邮箱..." : emailHint?.text || "等待校验"}
+                      sx={{ width: "fit-content" }}
+                    />
+                  )}
 
-          <button
-            type="submit"
-            disabled={
-              loading ||
-              (mode === "register" &&
-                (checkingEmail || emailHint?.type === "error"))
-            }
-            className="w-full rounded-xl bg-[#0071e3] py-3 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0077ED] active:translate-y-0 disabled:opacity-60"
-          >
-            {loading ? "提交中..." : mode === "login" ? "登录" : "注册"}
-          </button>
-        </form>
+                  <TextField
+                    label="密码"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    fullWidth
+                  />
 
-        <div className="mt-6 border-t border-[#d2d2d7] pt-4 text-center text-sm text-[#6e6e73]">
-          {mode === "login" ? "还没有账号？" : "已有账号？"}
-          <button
-            type="button"
-            className="ml-2 font-medium text-[#0071e3]"
-            onClick={() => {
-              setMessage(null);
-              setMode((m) => (m === "login" ? "register" : "login"));
-            }}
-          >
-            {mode === "login" ? "去注册" : "去登录"}
-          </button>
-        </div>
-      </section>
-    </main>
+                  {message && (
+                    <Alert severity={message.type === "error" ? "error" : "success"}>{message.text}</Alert>
+                  )}
+
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={loading || (mode === "register" && (checkingEmail || emailHint?.type === "error"))}
+                    startIcon={loading ? <CircularProgress color="inherit" size={16} /> : undefined}
+                  >
+                    {loading ? "提交中..." : mode === "login" ? "登录" : "注册"}
+                  </Button>
+                </Stack>
+              </Box>
+
+              <Typography variant="body2" color="text.secondary" textAlign="center">
+                {mode === "login" ? "还没有账号？切换到注册即可开始。" : "已经有账号？切换到登录继续。"}
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 }
