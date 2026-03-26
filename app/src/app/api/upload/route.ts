@@ -8,8 +8,20 @@ import { getCurrentUser } from "@/lib/current-user";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-function sanitizeFileName(name: string) {
+function sanitizeOriginalName(name: string) {
   return name.replace(/[^\w.\-()\u4e00-\u9fa5]/g, "_");
+}
+
+function detectExt(fileName: string, mimeType: string) {
+  const extFromName = path.extname(fileName).toLowerCase();
+  if (/^\.[a-z0-9]{1,8}$/.test(extFromName)) return extFromName;
+  if (mimeType === "image/jpeg") return ".jpg";
+  if (mimeType === "image/png") return ".png";
+  if (mimeType === "image/webp") return ".webp";
+  if (mimeType === "image/gif") return ".gif";
+  if (mimeType === "video/mp4") return ".mp4";
+  if (mimeType === "video/webm") return ".webm";
+  return ".bin";
 }
 
 export async function POST(request: Request) {
@@ -29,16 +41,15 @@ export async function POST(request: Request) {
     const uploadsDir = path.join(process.cwd(), "public", "uploads");
     await mkdir(uploadsDir, { recursive: true });
 
-    const safeName = sanitizeFileName(file.name || "file.bin");
-    const ext = path.extname(safeName);
-    const base = path.basename(safeName, ext) || "file";
-    const filename = `${Date.now()}-${randomUUID()}-${base}${ext}`;
+    const safeName = sanitizeOriginalName(file.name || "file.bin");
+    const mimeType = file.type || "application/octet-stream";
+    const ext = detectExt(safeName, mimeType);
+    const filename = `${Date.now()}-${randomUUID()}${ext}`;
     const fullPath = path.join(uploadsDir, filename);
 
     const bytes = await file.arrayBuffer();
     await writeFile(fullPath, Buffer.from(bytes));
 
-    const mimeType = file.type || "application/octet-stream";
     const kind = mimeType.startsWith("image/")
       ? "image"
       : mimeType.startsWith("video/")
