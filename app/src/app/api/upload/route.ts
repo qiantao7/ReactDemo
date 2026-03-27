@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         attachment: {
-          url: `/uploads/${filename}`,
+          url: `/api/upload/${filename}`,
           fileName: safeName,
           mimeType,
           size: file.size,

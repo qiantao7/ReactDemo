@@ -83,7 +83,7 @@ export async function POST(request: Request) {
           kind: toKind(mimeType),
         };
       })
-      .filter((item) => item.url.startsWith("/uploads/"));
+      .filter((item) => item.url.startsWith("/uploads/") || item.url.startsWith("/api/upload/"));
 
     const created = await prisma.post.create({
       data: {

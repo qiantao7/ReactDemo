@@ -101,6 +101,10 @@ function normalizeMediaUrl(url: string) {
   if (/^https?:\/\//i.test(raw)) {
     try {
       const parsed = new URL(raw);
+      if (parsed.pathname.startsWith("/uploads/")) {
+        const fileName = parsed.pathname.replace(/^\/uploads\//, "");
+        parsed.pathname = `/api/upload/${fileName}`;
+      }
       parsed.pathname = encodePath(parsed.pathname);
       return parsed.toString();
     } catch {
@@ -108,7 +112,10 @@ function normalizeMediaUrl(url: string) {
     }
   }
 
-  const pathname = raw.startsWith("/") ? raw : `/${raw}`;
+  const pathnameBase = raw.startsWith("/") ? raw : `/${raw}`;
+  const pathname = pathnameBase.startsWith("/uploads/")
+    ? pathnameBase.replace(/^\/uploads\//, "/api/upload/")
+    : pathnameBase;
   return encodePath(pathname);
 }
 
